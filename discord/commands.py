@@ -29,11 +29,17 @@ class ApplicationCommandOptionResponse:
 
 class ApplicationCommandCallback():
 
-    def __init__(self, name: str, description: str, callback: str, options: List = []):
+    def __init__(self, name: str, description: str, callback: str, options: List = [], guild_ids : List = []):
         self.name = name
         self.description = description
         self.callback = callback
         self.options = options
+        self.guild_ids = guild_ids
+        if len(self.guild_ids) == 0:
+            self.is_global = True
+        else:
+            self.is_global = False
+        print(self.guild_ids)
     
     def to_dict(self):
         data = {"name":self.name, "description":self.description, "type":1}

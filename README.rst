@@ -35,29 +35,7 @@ To install the library without full voice support, you can just run the followin
 .. code:: sh
 
     # Linux/macOS
-    python3 -m pip install -U discord.py
-
-    # Windows
-    py -3 -m pip install -U discord.py
-
-Otherwise to get voice support you should run the following command:
-
-.. code:: sh
-
-    # Linux/macOS
-    python3 -m pip install -U "discord.py[voice]"
-
-    # Windows
-    py -3 -m pip install -U discord.py[voice]
-
-
-To install the development version, do the following:
-
-.. code:: sh
-
-    $ git clone https://github.com/Rapptz/discord.py
-    $ cd discord.py
-    $ python3 -m pip install -U .[voice]
+    pip install git+https://github.com/Miolus/discord.py-SlashCommands
 
 
 Optional Packages
@@ -70,27 +48,18 @@ Please note that on Linux installing voice you must install the following packag
 * libffi-dev (or ``libffi-devel`` on some systems)
 * python-dev (e.g. ``python3.6-dev`` for Python 3.6)
 
-Quick Example
+SlashCommand Example
 --------------
 
 .. code:: py
 
     import discord
 
-    class MyClient(discord.Client):
-        async def on_ready(self):
-            print('Logged on as', self.user)
+    client = discord.Client()
 
-        async def on_message(self, message):
-            # don't respond to ourselves
-            if message.author == self.user:
-                return
-
-            if message.content == 'ping':
-                await message.channel.send('pong')
-
-    client = MyClient()
-    client.run('token')
+    @client.command(name="ping", description="Ping me!")
+    async def ping(interaction):
+        await interaction.response.send_message("Pong!")
 
 Bot Example
 ~~~~~~~~~~~~~
@@ -110,9 +79,3 @@ Bot Example
 
 You can find more examples in the examples directory.
 
-Links
-------
-
-- `Documentation <https://discordpy.readthedocs.io/en/latest/index.html>`_
-- `Official Discord Server <https://discord.gg/r3sSKJJ>`_
-- `Discord API <https://discord.gg/discord-api>`_

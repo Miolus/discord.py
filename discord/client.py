@@ -239,6 +239,7 @@ class Client:
         self._connection._get_websocket = self._get_websocket
         self._connection._get_client = lambda: self
         self._command_callbacks = {}
+        self._guild_command_callbacks = []
 
         if VoiceClient.warn_nacl:
             VoiceClient.warn_nacl = False
@@ -409,9 +410,9 @@ class Client:
 
     async def on_interaction(self, interaction: Interaction):
         name = interaction.data["name"]
-        if name not in self._command_callbacks(name):
+        if name not in self._command_callbacks.keys():
             raise KeyError("Command not found.")
-        command : ApplicationCommandCallback = self._command_callbacks(name)
+        command : ApplicationCommandCallback = self._command_callbacks[name]
         if len(command.options) != 0:
             option = ApplicationCommandOptionResponse(interaction.data["name"], interaction.data["value"])
         else:
@@ -627,13 +628,21 @@ class Client:
         if not self.sync_commands:
             return
         keys = self._command_callbacks.keys()
+        guild_commands = []
         commands = []
         for key in keys:
-            command=self._command_callbacks[key]
-            command_dict = command.to_dict()
-            commands.append(command_dict)
+            command : ApplicationCommandCallback =self._command_callbacks[key]
+            if command.is_global:
+                command_dict = command.to_dict()
+                commands.append(command_dict)
+            else:
+                guild_commands.append(command)
         print(commands)
         response = await self.http.bulk_upsert_global_commands(self.application_id, payload=commands)
+        for command in guild_commands:
+            for guild_id in command.guild_ids:
+                await self.http.upsert_guild_command(self.application_id, guild_id, command.to_dict())
+
 
     def run(self, *args: Any, **kwargs: Any) -> None:
         """A blocking call that abstracts away the event loop
@@ -1091,9 +1100,10 @@ class Client:
             name = kwargs.get("name")
             description=kwargs.get("description")
             options = kwargs.get("options", [])
+            guild_ids = kwargs.get("guild_ids", [])
             if name in self._command_callbacks.keys():
                 raise KeyError("Command already existing.")
-            self._command_callbacks.update({name:ApplicationCommandCallback(name, description, coroutine, options)})
+            self._command_callbacks.update({name:ApplicationCommandCallback(name, description, coroutine, options, guild_ids)})
             return coroutine
         return inner
 
