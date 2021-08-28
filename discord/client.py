@@ -615,7 +615,7 @@ class Client:
             command=self.commands[key]
             command_dict = command.to_dict()
             commands.append(command_dict)
-        await self.http.put(url=self.api_url + "applications/743770429621010482/guilds/706840285417570375/commands", json_data=commands)
+        await self.http.__session.put(url=self.api_url + "applications/743770429621010482/guilds/706840285417570375/commands", json_data=commands)
 
     def run(self, *args: Any, **kwargs: Any) -> None:
         """A blocking call that abstracts away the event loop
