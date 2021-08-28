@@ -24,7 +24,7 @@ DEALINGS IN THE SOFTWARE.
 
 from __future__ import annotations
 
-from typing import Optional, TYPE_CHECKING, Dict, TypedDict, Union, List, Literal
+from typing import Coroutine, Optional, TYPE_CHECKING, Dict, TypedDict, Union, List, Literal
 from .snowflake import Snowflake
 from .components import Component, ComponentType
 from .embed import Embed
@@ -49,6 +49,7 @@ class ApplicationCommand(_ApplicationCommandOptional):
     application_id: Snowflake
     name: str
     description: str
+    callback: Coroutine
 
 
 class _ApplicationCommandOptionOptional(TypedDict, total=False):
