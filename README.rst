@@ -69,6 +69,6 @@ SlashCommand Context Object:
 
     
     Attributes:
-    .. code:: py
+.. code:: py
     ctx.interaction
     ctx.command
