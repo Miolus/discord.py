@@ -224,8 +224,7 @@ class Client:
         self.http: HTTPClient = HTTPClient(connector, proxy=proxy, proxy_auth=proxy_auth, unsync_clock=unsync_clock, loop=self.loop)
 
         self._handlers: Dict[str, Callable] = {
-            'ready': self._handle_ready,
-            'command_interaction': self.on_command_interaction
+            'ready': self._handle_ready
         }
 
         self._hooks: Dict[str, Callable] = {
@@ -620,19 +619,21 @@ class Client:
         TypeError
             An unexpected keyword argument was received.
         """
-        if sync_commands:
-            await self._patch_commands()
         await self.login(token)
+        self.sync_commands = sync_commands
         await self.connect(reconnect=reconnect)
 
-    async def _patch_commands(self):
+    async def on_connect(self):
+        if not self.sync_commands:
+            return
         keys = self._command_callbacks.keys()
         commands = []
         for key in keys:
-            command=self.commands[key]
+            command=self._command_callbacks[key]
             command_dict = command.to_dict()
             commands.append(command_dict)
-        await self.http.__session.put(url=self.api_url + f"applications/{self.application_id}/commands", json_data=commands)
+        print(commands)
+        response = await self.http.bulk_upsert_global_commands(self.application_id, payload=commands)
 
     def run(self, *args: Any, **kwargs: Any) -> None:
         """A blocking call that abstracts away the event loop
@@ -1072,7 +1073,7 @@ class Client:
         _log.debug('%s has successfully been registered as an event', coro.__name__)
         return coro
     
-    def command(self, coro: Coro, *args, **kwargs) -> Coro:
+    def command(self, *args, **kwargs):
         """A decorator that registers a command to listen to.
 
         You can find more info about the events on the :ref:`documentation below <discord-api-events>`.
@@ -1086,19 +1087,15 @@ class Client:
             The coroutine passed is not actually a coroutine.
         """
 
-        if not asyncio.iscoroutinefunction(coro):
-            raise TypeError('event registered must be a coroutine function')
-
         def inner(coroutine):
             name = kwargs.get("name")
             description=kwargs.get("description")
             options = kwargs.get("options", [])
-            if name in self.commands.keys():
+            if name in self._command_callbacks.keys():
                 raise KeyError("Command already existing.")
             self._command_callbacks.update({name:ApplicationCommandCallback(name, description, coroutine, options)})
             return coroutine
-        _log.debug('%s has successfully been registered as a command', coro.__name__)
-        return coro
+        return inner
 
     async def change_presence(
         self,

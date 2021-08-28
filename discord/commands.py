@@ -1,6 +1,6 @@
-from discord.types.interactions import ApplicationCommandOption
+from .types.interactions import ApplicationCommandOption
 from typing import Coroutine, List, TYPE_CHECKING
-from discord.types.snowflake import Snowflake
+from .types.snowflake import Snowflake
 
 class ApplicationCommandOption:
     
@@ -29,14 +29,14 @@ class ApplicationCommandOptionResponse:
 
 class ApplicationCommandCallback():
 
-    def __init__(self, name: str, description: str, callback: str, options: List(ApplicationCommandOption)):
+    def __init__(self, name: str, description: str, callback: str, options: List = []):
         self.name = name
         self.description = description
         self.callback = callback
         self.options = options
     
     def to_dict(self):
-        data = {"name":self.name, "description":self.description}
+        data = {"name":self.name, "description":self.description, "type":1}
         options = []
         for option in self.options:
             options.append(option.to_dict())
