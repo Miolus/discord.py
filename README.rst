@@ -67,6 +67,8 @@ You can find more examples in the examples directory.
 
 SlashCommand Context Object:
 
+.. code:: py
+
     ctx.interaction -> discord.Interaction
     ctx.command -> discord.commands.ApplicationCommandCallback
     ctx.send -> Interaction.response.send_message
