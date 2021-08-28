@@ -64,3 +64,10 @@ Bot Example
 
 You can find more examples in the examples directory.
 
+
+SlashCommand Context Object:
+
+.. code:: py
+    
+    ctx.interaction
+    ctx.command
