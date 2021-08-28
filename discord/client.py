@@ -25,7 +25,10 @@ DEALINGS IN THE SOFTWARE.
 from __future__ import annotations
 
 import asyncio
-from discord.commands import ApplicationCommand, ApplicationCommandCallback
+
+from aiohttp.client_reqrep import ClientResponse
+from discord.interactions import Interaction, InteractionResponse
+from discord.commands import ApplicationCommand, ApplicationCommandCallback, ApplicationCommandOptionResponse
 import logging
 import signal
 import sys
@@ -221,7 +224,8 @@ class Client:
         self.http: HTTPClient = HTTPClient(connector, proxy=proxy, proxy_auth=proxy_auth, unsync_clock=unsync_clock, loop=self.loop)
 
         self._handlers: Dict[str, Callable] = {
-            'ready': self._handle_ready
+            'ready': self._handle_ready,
+            'command_interaction': self.on_command_interaction
         }
 
         self._hooks: Dict[str, Callable] = {
@@ -403,6 +407,18 @@ class Client:
             pass
         else:
             self._schedule_event(coro, method, *args, **kwargs)
+
+    async def on_interaction(self, interaction: Interaction):
+        name = interaction.data["name"]
+        if name not in self._command_callbacks(name):
+            raise KeyError("Command not found.")
+        command : ApplicationCommandCallback = self._command_callbacks(name)
+        if len(command.options) != 0:
+            option = ApplicationCommandOptionResponse(interaction.data["name"], interaction.data["value"])
+        else:
+            option = None
+        await command.callback(interaction, option)
+        
 
     async def on_error(self, event_method: str, *args: Any, **kwargs: Any) -> None:
         """|coro|
@@ -604,7 +620,8 @@ class Client:
         TypeError
             An unexpected keyword argument was received.
         """
-        await self._patch_commands()
+        if sync_commands:
+            await self._patch_commands()
         await self.login(token)
         await self.connect(reconnect=reconnect)
 
@@ -615,7 +632,7 @@ class Client:
             command=self.commands[key]
             command_dict = command.to_dict()
             commands.append(command_dict)
-        await self.http.__session.put(url=self.api_url + "applications/743770429621010482/guilds/706840285417570375/commands", json_data=commands)
+        await self.http.__session.put(url=self.api_url + f"applications/{self.application_id}/commands", json_data=commands)
 
     def run(self, *args: Any, **kwargs: Any) -> None:
         """A blocking call that abstracts away the event loop

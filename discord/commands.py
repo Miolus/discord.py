@@ -21,6 +21,12 @@ class ApplicationCommandOption:
             dict_choices.append(choice.to_dict())
         return {"name":self.name, "description":self.description,"required":self.required,"type":self.type, "options":dict_options, "choices":dict_choices}
 
+class ApplicationCommandOptionResponse:
+
+    def __init__(self, name, value):
+        self.name = name
+        self.value = value
+
 class ApplicationCommandCallback():
 
     def __init__(self, name: str, description: str, callback: str, options: List(ApplicationCommandOption)):
