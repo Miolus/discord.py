@@ -1,6 +1,8 @@
+import asyncio
 from .types.interactions import ApplicationCommandOption
-from typing import Coroutine, List, TYPE_CHECKING
+from typing import Coroutine, Dict, List, TYPE_CHECKING
 from .types.snowflake import Snowflake
+from .interactions import Interaction
 
 class ApplicationCommandOption:
     
@@ -66,3 +68,19 @@ class ApplicationCommand():
         self.name = name
         self.description = description
         self.callback = callback
+
+class ApplicationCommandContext:
+
+    def __init__(self, interaction: Interaction, command : ApplicationCommandCallback):
+        if "options" in interaction.data.keys():
+            self.option = interaction.data["options"]
+        else:
+            self.option = None
+        self.interaction = interaction
+        self.command = command
+        self.send = self.interaction.response.send_message
+        asyncio.create_task(command.callback(self))
+
+
+
+

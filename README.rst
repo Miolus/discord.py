@@ -47,8 +47,8 @@ SlashCommand Example
     client = discord.Client()
 
     @client.command(name="ping", description="Ping me!")
-    async def ping(interaction):
-        await interaction.response.send_message("Pong!")
+    async def ping(ctx):
+        await ctx.send("Pong!")
 
 Bot Example
 ~~~~~~~~~~~~~

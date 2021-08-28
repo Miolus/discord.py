@@ -28,7 +28,7 @@ import asyncio
 
 from aiohttp.client_reqrep import ClientResponse
 from discord.interactions import Interaction, InteractionResponse
-from discord.commands import ApplicationCommand, ApplicationCommandCallback, ApplicationCommandOptionResponse
+from discord.commands import ApplicationCommand, ApplicationCommandCallback, ApplicationCommandContext, ApplicationCommandOptionResponse
 import logging
 import signal
 import sys
@@ -411,13 +411,8 @@ class Client:
     async def on_interaction(self, interaction: Interaction):
         name = interaction.data["name"]
         if name not in self._command_callbacks.keys():
-            raise KeyError("Command not found.")
-        command : ApplicationCommandCallback = self._command_callbacks[name]
-        if len(command.options) != 0:
-            option = ApplicationCommandOptionResponse(interaction.data["name"], interaction.data["value"])
-        else:
-            option = None
-        await command.callback(interaction, option)
+            raise KeyError("%s : Command not found." % name)
+        ApplicationCommandContext(interaction, self._command_callbacks[name])
         
 
     async def on_error(self, event_method: str, *args: Any, **kwargs: Any) -> None:
